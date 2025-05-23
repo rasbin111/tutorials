@@ -6,9 +6,11 @@ import (
 	"log"
 	"os"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 )
+
+var pool *pgxpool.Pool
 
 func init() {
 	err := godotenv.Load()
@@ -25,17 +27,23 @@ func init() {
 		os.Getenv("DB_NAME"),
 	)
 
-	conn, err := pgx.Connect(context.Background(), connectionStr)
+	pool, err = pgxpool.New(context.Background(), connectionStr)
 
 	if err != nil {
 		log.Fatalf("Unable to connect to database: %v\n", err)
 	}
-
-	defer conn.Close(context.Background())
 
 	fmt.Println("Connected to PostgreSQL Database")
 
 }
 
 func main() {
+	defer pool.Close()
+
+	creationErr := CreateUser("Ravi Karki", "ravi@gmail.com", "Ramechhap")
+
+	if creationErr != nil {
+		log.Fatalf("Unable to create user: %v\n", creationErr)
+	}
+
 }
